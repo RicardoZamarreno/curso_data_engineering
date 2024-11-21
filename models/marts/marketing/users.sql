@@ -5,10 +5,6 @@ WITH stg_users AS (
     FROM {{ ref('stg_sql_server_dbo__users') }}
     ),
 
-    stg_addresses AS (
-    SELECT * 
-    FROM {{ ref('stg_sql_server_dbo__addresses') }}
-    ),
 
     renamed_casted AS (
     SELECT
@@ -22,20 +18,8 @@ WITH stg_users AS (
         , address_id
         , date_load
     FROM stg_users
-    ),
-
-    renamed_address AS (
-    SELECT
-        zipcode,
-        address,
-        address_id
-    
-    FROM
-        stg_addresses
     )
 
 
 SELECT * 
-FROM renamed_casted left join
-renamed_address on
-renamed_address.address_id = renamed_casted.address_id
+FROM renamed_casted

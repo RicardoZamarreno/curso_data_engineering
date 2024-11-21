@@ -5,11 +5,7 @@ with
 
     renamed_casted as (
         select
-        	{{ dbt_utils.surrogate_key([
-				'order_id', 
-				'tracking_id'
-			])
-		}} as tracking_id,
+            tracking_id,
             shipping_service,
             user_id,
             status,

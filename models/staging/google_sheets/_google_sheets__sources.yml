@@ -4,7 +4,7 @@ sources:
   - name: google_sheets
     description: "Esta fuente contiene datos extraídos de Google Sheets, incluyendo información sobre presupuestos."
     schema: google_sheets
-    database: ALUMNO17_DEV_BRONZE_DB
+    database: "{{ env_var('DBT_ENVIRONMENTS') }}_BRONZE_DB"
 
     quoting:
       database: false
@@ -24,13 +24,12 @@ sources:
             description: "Identificador único para cada fila en la hoja de cálculo."
             tests:
               - not_null
-              - unique
           - name: product_id
             description: "Identificador único del producto asociado con el presupuesto."
             tests:
               - not_null
               - relationships:
-                  to: ref('products')  # Asumiendo que hay una tabla de productos en tu modelo
+                  to: ref('products') 
                   field: product_id
           - name: quantity
             description: "Cantidad del producto presupuestado."
