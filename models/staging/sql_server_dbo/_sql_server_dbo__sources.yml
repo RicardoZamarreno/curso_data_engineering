@@ -1,0 +1,248 @@
+version: 2
+
+sources:
+  - name: sql_server_dbo
+    description: "Esta fuente contiene datos crudos extraídos de la base de datos SQL Server, incluyendo direcciones, eventos, pedidos, productos, promociones y usuarios."
+    schema: sql_server_dbo
+    database: ALUMNO17_DEV_BRONZE_DB
+
+    quoting:
+      database: false
+      schema: false
+      identifier: false
+
+    freshness:
+      warn_after: { count: 15, period: day }
+      error_after: { count: 48, period: day }
+
+    tables:
+      - name: addresses
+        description: "Tabla que contiene las direcciones de los usuarios."
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: address_id
+            description: "Identificador único para cada dirección."
+            tests:
+              - not_null
+              - unique
+          - name: zipcode
+            description: "Código postal de la dirección."
+            tests:
+              - not_null
+          - name: country
+            description: "País de la dirección."
+            tests:
+              - not_null
+          - name: address
+            description: "Detalles de la dirección."
+            tests:
+              - not_null
+          - name: state
+            description: "Estado de la dirección."
+            tests:
+              - not_null
+          - name: _fivetran_delete
+            description: "Marca si el registro ha sido eliminado por Fivetran."
+          - name: _fivetran_synced
+            description: "Marca temporal de la última sincronización de Fivetran."
+
+      - name: events
+        description: "Tabla que contiene eventos registrados por los usuarios."
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: event_id
+            description: "Identificador único para cada evento."
+            tests:
+              - not_null
+              - unique
+          - name: page_url
+            description: "URL de la página donde ocurrió el evento."
+            tests:
+              - not_null
+          - name: event_type
+            description: "Tipo de evento."
+            tests:
+              - not_null
+          - name: user_id
+            description: "Identificador del usuario que realizó el evento."
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('users')
+                  field: user_id
+          - name: product_id
+            description: "Identificador del producto relacionado con el evento."
+            tests:
+              - not_null
+          - name: session_id
+            description: "Identificador de la sesión del usuario."
+            tests:
+              - not_null
+          - name: created_at
+            description: "Marca temporal de cuando ocurrió el evento."
+            tests:
+              - not_null
+          - name: order_id
+            description: "Identificador del pedido asociado, si aplica."
+          - name: _fivetran_delete
+            description: "Marca si el registro ha sido eliminado por Fivetran."
+          - name: _fivetran_synced
+            description: "Marca temporal de la última sincronización de Fivetran."
+
+      - name: orders
+        description: "Tabla que contiene información sobre los pedidos realizados por los usuarios."
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: order_id
+            description: "Identificador único para cada pedido."
+            tests:
+              - not_null
+              - unique
+          - name: shipping_service
+            description: "Servicio de envío utilizado para el pedido."
+          - name: shipping_cost
+            description: "Costo de envío del pedido."
+            tests:
+              - not_null
+          - name: address_id
+            description: "Identificador de la dirección de envío."
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('addresses')
+                  field: address_id
+          - name: created_at
+            description: "Marca temporal de cuando se creó el pedido."
+            tests:
+              - not_null
+          - name: promo_id
+            description: "Identificador de la promoción aplicada, si aplica."
+          - name: estimated_delivery_at
+            description: "Fecha estim ada de entrega del pedido."
+          - name: order_cost
+            description: "Costo total del pedido antes de impuestos."
+          - name: user_id
+            description: "Identificador del usuario que realizó el pedido."
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('users')
+                  field: user_id
+          - name: order_total
+            description: "Total del pedido después de impuestos y descuentos."
+            tests:
+              - not_null
+          - name: delivered_at
+            description: "Marca temporal de cuando se entregó el pedido."
+          - name: tracking_id
+            description: "Identificador de seguimiento del envío."
+          - name: status
+            description: "Estado actual del pedido (ejemplo: pendiente, enviado, entregado)."
+            tests:
+              - not_null
+          - name: _fivetran_delete
+            description: "Marca si el registro ha sido eliminado por Fivetran."
+          - name: _fivetran_synced
+            description: "Marca temporal de la última sincronización de Fivetran."
+
+      - name: order_items
+        description: "Tabla que contiene los artículos de cada pedido."
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: order_id
+            description: "Identificador del pedido al que pertenece el artículo."
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('orders')
+                  field: order_id
+          - name: product_id
+            description: "Identificador del producto en el pedido."
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('products')
+                  field: product_id
+          - name: quantity
+            description: "Cantidad del producto en el pedido."
+            tests:
+              - not_null
+          - name: _fivetran_delete
+            description: "Marca si el registro ha sido eliminado por Fivetran."
+          - name: _fivetran_synced
+            description: "Marca temporal de la última sincronización de Fivetran."
+
+      - name: products
+        description: "Tabla que contiene información sobre los productos disponibles."
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: product_id
+            description: "Identificador único para cada producto."
+            tests:
+              - not_null
+              - unique
+          - name: price
+            description: "Precio del producto."
+            tests:
+              - not_null
+          - name: name
+            description: "Nombre del producto."
+            tests:
+              - not_null
+          - name: inventory
+            description: "Cantidad de producto disponible en inventario."
+            tests:
+              - not_null
+          - name: _fivetran_delete
+            description: "Marca si el registro ha sido eliminado por Fivetran."
+          - name: _fivetran_synced
+            description: "Marca temporal de la última sincronización de Fivetran."
+
+      - name: promos
+        description: "Tabla que contiene información sobre las promociones disponibles."
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: promo_id
+            description: "Identificador único para cada promoción."
+            tests:
+              - not_null
+              - unique
+          - name: discount
+            description: "Descuento aplicado por la promoción."
+            tests:
+              - not_null
+          - name: status
+            description: "Estado actual de la promoción (ejemplo: activa, inactiva)."
+            tests:
+              - not_null
+          - name: _fivetran_delete
+            description: "Marca si el registro ha sido eliminado por Fivetran."
+          - name: _fivetran_synced
+            description: "Marca temporal de la última sincronización de Fivetran."
+
+      - name: users
+        description: "Tabla que contiene información sobre los usuarios registrados."
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: user_id
+            description: "Identificador único para cada usuario."
+            tests:
+              - not_null
+              - unique
+          - name: update_at
+            description: "Marca temporal de la última actualización de la información del usuario."
+          - name: address_id
+            description: "Identificador de la dirección asociada al usuario."
+            tests:
+              - relationships:
+                  to: ref('addresses')
+                  field: address_id
+          - name: last_name
+            description: "Apellido del usuario."
+            tests:
+              - not_null
+          - name: created_at
+            description: "Marca temporal de cuando se creó el registro del usuario."
+            tests:
+              - not_null
+          - name: phone_numer
