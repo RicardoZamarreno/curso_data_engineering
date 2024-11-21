@@ -1,0 +1,220 @@
+version: 2
+
+models:
+  - name: addresses
+    description: "Modelo que contiene información de los domicilios."
+    columns:
+      - name: address_id
+        description: "Identificador único de la dirección."
+        tests:
+          - not_null
+          - unique
+      - name: zipcode
+        description: "Código postal de la dirección, debe ser de 5 o 9 dígitos."
+        tests:
+          - not_null
+      - name: country
+        description: "País de la dirección."
+      - name: address
+        description: "Dirección en formato de texto."
+        tests:
+          - not_null
+      - name: state
+        description: "Estado de la dirección."
+      - name: deleted
+        description: "Indica si la dirección ha sido eliminada de la tabla original."
+      - name: date_load
+        description: "Fecha y hora de carga de los datos."
+
+  - name: events
+    description: "Modelo que contiene información sobre eventos."
+    columns:
+      - name: event_id
+        description: "Identificador único del evento."
+        tests:
+          - not_null
+          - unique
+      - name: page_url
+        description: "URL de la página donde ocurrió el evento."
+      - name: event_type
+        description: "Tipo de evento registrado."
+      - name: user_id
+        description: "Identificador del usuario que generó el evento."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_sql_server_dbo__users')
+              field: user_id
+      - name: product_id
+        description: "Identificador del producto relacionado con el evento."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_sql_server_dbo__products')
+              field: product_id        
+      - name: session_id
+        description: "Identificador de la sesión del usuario."
+        tests:
+          - not_null        
+      - name: created_at
+        description: "Fecha y hora en que se creó el evento."
+      - name: order_id
+        description: "Identificador del pedido asociado al evento."
+      - name: deleted
+        description: "Indica si el evento ha sido eliminado."
+      - name: date_load
+        description: "Fecha y hora de carga de los datos."
+
+  - name: order_items
+    description: "Modelo que contiene información sobre pedidos."
+    columns:
+      - name: order_id
+        description: "Identificador único del pedido."
+        tests:
+          - not_null
+          - unique
+      - name: shipping_cost
+        description: "Costo de envío del pedido por cada order_id."
+      - name: address_id
+        description: "Identificador de la dirección de envío."
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('stg_sql_server_dbo__addresses')
+              field: address_id
+      - name: created_at
+        description: "Fecha y hora en que se creó el pedido."
+      - name: promo_id
+        description: "Identificador de la promoción aplicada al pedido."
+        tests:  # Asegúrate de que esta línea esté alineada correctamente
+          - not_null
+          - unique
+          - relationships:
+              to: ref('stg_sql_server_dbo__promo')
+              field: promo_id 
+      - name: order_cost
+        description: "Costo total del pedido."
+      - name: user_id
+        description: "Identificador del usuario que realizó el pedido."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_sql_server_dbo__users')
+              field: user_id
+      - name: order_total
+        description: "Total del pedido."
+      - name: delivered_at
+        description: "Fecha y hora en que se entregó el pedido."
+      - name: deleted
+        description: "Indica si el pedido ha sido eliminado."
+      - name: date_load
+        description: "Fecha y hora de carga de los datos."
+
+  - name: products
+    description: "Modelo que contiene información sobre productos."
+    columns:
+      - name: product_id
+        description: "Identificador único del producto."
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('stg_sql_server_dbo__order_items')
+              field: product_id          
+      - name: price
+        description: "Precio del producto."
+      - name: name
+        description: "Nombre del producto."
+      - name: inventory
+        description: "Cantidad de producto disponible en inventario."
+      - name: deleted
+        description: "Indica si el producto ha sido eliminado."
+      - name: date_load
+        description: "Fecha y hora de carga de los datos."
+
+  - name: promociones
+    description: "Modelo que contiene información sobre promociones."
+    columns:
+      - name: promo_id
+        description: "Identificador único de la promoción."
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('stg_sql_server_dbo__order_items')
+              field: promo_id
+      - name: discount
+        description: "Descuento aplicado por la promoción en euros."
+      - name: status
+        description: "Estado de la promoción."
+      - name: deleted
+        description: "Indica si la promoción ha sido eliminada."
+      - name: date_load
+        description: "Fecha y hora de carga de los datos."
+
+  - name: shipping
+    description: "Modelo que contiene información sobre el seguimiento de pedidos."
+    columns:
+      - name: tracking_id
+        description: "Identificador único de seguimiento del pedido."
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('stg_sql_server_dbo__order_items')
+              field: tracking_id          
+      - name: shipping_service
+        description: "Servicio de envío utilizado para el pedido."
+      - name: user_id
+        description: "Identificador del usuario que realizó el pedido."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_sql_server_dbo__users')
+              field: user_id
+      - name: status
+        description: "Estado actual del pedido."
+      - name: estimated_delivery_at
+        description: "Fecha y hora estimada de entrega del pedido."
+      - name: delivered_at
+        description: "Fecha y hora en que se entregó el pedido."
+      - name: deleted
+        description: "Indica si el seguimiento del pedido ha sido eliminado."
+      - name: date_load
+        description: "Fecha y hora de carga de los datos."
+
+  - name: users
+    description: "Modelo que contiene información sobre los usuarios."
+    columns:
+      - name: user_id
+        description: "Identificador único del usuario."
+        tests:
+          - not_null
+          - unique
+      - name: updated_at
+        description: "Fecha y hora de la última actualización del usuario."
+      - name: address_id
+        description: "Identificador de la dirección del usuario."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_sql_server_dbo__addresses')
+              field: address_id
+      - name: last_name
+        description: "Apellido del usuario."
+      - name: created_at
+        description: "Fecha y hora en que se creó el usuario."
+      - name: phone_number
+        description: "Número de teléfono del usuario."
+      - name: first_name
+        description: "Nombre del usuario."
+      - name: email
+        description: "Correo electrónico del usuario."
+        tests:
+          - not_null
+          - unique
+      - name: deleted
+        description: "Indica si el usuario ha sido eliminado."
+      - name: date_load
+        description: "Fecha y hora de carga de los datos." 

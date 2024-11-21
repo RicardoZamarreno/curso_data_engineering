@@ -1,0 +1,44 @@
+version: 2
+
+sources:
+  - name: google_sheets
+    description: "Esta fuente contiene datos extraídos de Google Sheets, incluyendo información sobre presupuestos."
+    schema: google_sheets
+    database: ALUMNO17_DEV_BRONZE_DB
+
+    quoting:
+      database: false
+      schema: false
+      identifier: false
+
+    freshness:
+      warn_after: { count: 24, period: day }
+      error_after: { count: 48, period: day }
+
+    tables:
+      - name: budget
+        description: "Tabla que contiene información sobre el presupuesto, incluyendo productos, cantidades y meses."
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: _row
+            description: "Identificador único para cada fila en la hoja de cálculo."
+            tests:
+              - not_null
+              - unique
+          - name: product_id
+            description: "Identificador único del producto asociado con el presupuesto."
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('products')  # Asumiendo que hay una tabla de productos en tu modelo
+                  field: product_id
+          - name: quantity
+            description: "Cantidad del producto presupuestado."
+            tests:
+              - not_null
+          - name: month
+            description: "Mes al que se refiere el presupuesto, en formato año/mes/dia."
+            tests:
+              - not_null
+          - name: _fivetran_synced
+            description: "Marca temporal de la última sincronización de Fivetran."
